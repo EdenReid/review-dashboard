@@ -1,0 +1,2 @@
+v0.1 - Project setup
+Created folder structure and initial main.py file
