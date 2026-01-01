@@ -1,6 +1,7 @@
 #importing libraries and modules
+import sys
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QVBoxLayout, QLabel, QStackedWidget
+from PyQt6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QVBoxLayout, QLabel, QStackedWidget, QFileDialog
 
 class UploadPage(QWidget):
     
@@ -29,6 +30,7 @@ class UploadPage(QWidget):
         font.setPointSize(15)
         self.button.setFont(font)
         self.button.setFixedSize(120,50)
+        self.button.clicked.connect(self.browse_files)
 
         self.next_button = QPushButton("Next") #next button (disabled for now)
         self.next_button.setEnabled(False)
@@ -49,6 +51,16 @@ class UploadPage(QWidget):
         layout.addStretch()
 
         self.setLayout(layout)
+    
+    def browse_files(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Choose CSV file", # window title 
+            "", # starting directory (last directory the user visited)
+            "CSV files (*.csv)" # only CSV files are visible and selectable
+        )
+        if not file_path: # user cancels
+            return 
 
 class MainWindow(QMainWindow):
     def __init__(self):
