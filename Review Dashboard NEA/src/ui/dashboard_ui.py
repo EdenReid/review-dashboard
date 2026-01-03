@@ -1,4 +1,5 @@
 #importing libraries and modules
+import os
 import sys
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QVBoxLayout, QLabel, QStackedWidget, QFileDialog
@@ -36,6 +37,9 @@ class UploadPage(QWidget):
         self.next_button.setEnabled(False)
         self.next_button.setFixedSize(100,30)
 
+        self.file_label = QLabel()
+        self.file_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
         self.next_button.clicked.connect(self.next_requested.emit)
 
         layout.addStretch() # vertical stretches are used to adjust the position of text within the page
@@ -45,8 +49,9 @@ class UploadPage(QWidget):
         layout.addWidget(self.button)
         layout.setAlignment(self.button, Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch()
-        layout.addWidget(self.next_button)
+        layout.addWidget(self.file_label)
         layout.addStretch()
+        layout.addWidget(self.next_button)
         layout.setAlignment(self.next_button, Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch()
 
@@ -55,12 +60,14 @@ class UploadPage(QWidget):
     def browse_files(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Choose CSV file", # window title 
-            "", # starting directory (last directory the user visited)
-            "CSV files (*.csv)" # only CSV files are visible and selectable
+            "Choose CSV file", # window title
+            "", # opens the last directory the user visited
+            "CSV files (*.csv)" # only CSV files are selectable
         )
         if not file_path: # user cancels
             return 
+        file_name = os.path.basename(file_path)
+        self.file_label.setText(f"Selected file: {file_name}")
 
 class MainWindow(QMainWindow):
     def __init__(self):
