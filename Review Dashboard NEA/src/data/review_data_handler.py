@@ -9,9 +9,11 @@ class ReviewDataHandler:
         
         try:
 
-            with open(file_path, newline = "") as f: 
+            with open(file_path, newline="", encoding="utf-8-sig") as f:
                 reader = csv.reader(f)
                 headers = next(reader)
+                headers = [h.lstrip("\ufeff").strip() for h in headers]
+                print(headers)
 
                 required_headers = ("Date","Review") # checking that file contains correct headers
                 for header in required_headers:
@@ -30,5 +32,5 @@ class ReviewDataHandler:
         except FileNotFoundError, UnicodeDecodeError, csv.Error:
 
             return False, "File could not be read as a valid CSV"
-        
-print(ReviewDataHandler().validate_file("c:/users/19edenr/OneDrive - Holland Park School/Desktop/Review Dashboard NEA/data/missing_data_csv"))
+
+print(ReviewDataHandler().validate_file("src/data/missing_data.csv"))
