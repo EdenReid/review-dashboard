@@ -34,6 +34,3 @@ class ReviewDataHandler:
         except FileNotFoundError, UnicodeDecodeError, csv.Error:
 
             return False, "File could not be read as a valid CSV", None
-
-x,y,df = ReviewDataHandler().validate_file("src/data/valid_reviews.csv")
-print(df)
