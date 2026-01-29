@@ -1,0 +1,12 @@
+v0.1 - Project setup
+Created folder structure and initial main.py file
+v0.2 - First GUI
+Created initial upload CSV page and MainWindow class
+v0.3 - file dialog
+Implemented QFileDialog to open file directory and connected to push button
+v0.4 - name of file appears
+file name appears under browse files button when selected
+v0.5 - file validation
+implemented working file validation method within backend
+v0.6 - connect error message to UI
+v0.7 - parse and store file
