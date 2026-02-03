@@ -35,7 +35,7 @@ class ReviewDataHandler:
             return False, "File could not be read as a valid CSV", None
         
     def find_min_max_dates(self, df):
-        df["Date"] = pd.to_datetime(df["Date"])
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst = "True")
 
         min_date = df["Date"].min().date()
         max_date = df["Date"].max().date()

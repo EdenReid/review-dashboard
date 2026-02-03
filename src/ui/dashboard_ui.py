@@ -27,6 +27,11 @@ class UploadPage(QWidget):
         label.setFont(font)
         label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
+        info_label = QLabel("Please note: CSV must include headers 'Date' and 'Review' and all dates should be in dd/mm/yyyy form.")
+        font.setPointSize(10)
+        info_label.setFont(font)
+        info_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
         self.button = QPushButton("Browse files")
         font = self.button.font()
         font.setPointSize(15)
@@ -50,6 +55,8 @@ class UploadPage(QWidget):
         layout.addWidget(title)
         layout.addStretch()
         layout.addWidget(label)
+        layout.addWidget(info_label)
+        layout.addStretch()
         layout.addWidget(self.button, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch()
         layout.addWidget(self.file_label)
