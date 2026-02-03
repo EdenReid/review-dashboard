@@ -91,6 +91,7 @@ class UploadPage(QWidget):
 class CalendarPage(QWidget):
     
     back_requested = pyqtSignal()
+    next_requested = pyqtSignal()
 
     def __init__(self):        
         super().__init__()
@@ -139,6 +140,11 @@ class CalendarPage(QWidget):
         end_layout.addWidget(self.end_label2)
         end_layout.addWidget(self.end_calendar)
 
+        self.next_button = QPushButton("Next")
+        self.next_button.setEnabled(False)
+        self.next_button.setFixedSize(100, 30)
+        self.next_button.clicked.connect(self.next_requested.emit)
+
         calendars_layout.addSpacing(20)
         calendars_layout.addLayout(start_layout)
         calendars_layout.addSpacing(20)
@@ -152,6 +158,8 @@ class CalendarPage(QWidget):
         layout.addWidget(title)
         layout.addSpacing(30)
         layout.addLayout(calendars_layout)
+        layout.addStretch()
+        layout.addWidget(self.next_button, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch()
         layout.addWidget(self.back_button)
         
@@ -200,6 +208,8 @@ class MainWindow(QMainWindow):
         self.upload_page.next_requested.connect(self.go_next)
 
         self.calendar_page.back_requested.connect(self.go_back)
+
+        self.calendar_page.next_requested.connect(self.go_next)
     
     def go_next(self):
         currentIndex = self.stack.currentIndex()
