@@ -119,7 +119,7 @@ class CalendarPage(QWidget):
         self.start_label2.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         
         self.start_calendar = QCalendarWidget()
-        self.start_calendar.selectionChanged.connect(self.update_start_label)
+        self.start_calendar.selectionChanged.connect(self.on_date_changed)
 
         start_layout.addWidget(start_label1)
         start_layout.addWidget(self.start_label2)
@@ -134,11 +134,15 @@ class CalendarPage(QWidget):
         self.end_label2.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.end_calendar = QCalendarWidget()
-        self.end_calendar.selectionChanged.connect(self.update_end_label)
+        self.end_calendar.selectionChanged.connect(self.on_date_changed)
 
         end_layout.addWidget(end_label1)
         end_layout.addWidget(self.end_label2)
         end_layout.addWidget(self.end_calendar)
+
+        self.error_label = QLabel()
+        self.error_label.setStyleSheet("color: red;")
+        self.error_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.next_button = QPushButton("Next")
         self.next_button.setEnabled(False)
@@ -159,10 +163,13 @@ class CalendarPage(QWidget):
         layout.addSpacing(30)
         layout.addLayout(calendars_layout)
         layout.addStretch()
+        layout.addWidget(self.error_label)
         layout.addWidget(self.next_button, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch()
         layout.addWidget(self.back_button)
         
+        self.on_date_changed()
+
         self.setLayout(layout)
 
     def set_date_bounds(self, min_date, max_date):
@@ -187,6 +194,22 @@ class CalendarPage(QWidget):
     def update_end_label(self):
         qdate = self.end_calendar.selectedDate()
         self.end_label2.setText(qdate.toString("dd MMMM yyyy"))
+
+    def capture_selected_dates(self):
+        self.start_date = self.start_calendar.selectedDate().toPyDate()
+        self.end_date = self.end_calendar.selectedDate().toPyDate()
+
+    def validate_date_range(self):
+        if self.start_date > self.end_date:
+            self.error_label.setText("Start date cannot be after end date")
+        else:
+            self.next_button.setEnabled(True)
+
+    def on_date_changed(self):
+        self.capture_selected_dates()
+        self.validate_date_range()
+        self.update_start_label()
+        self.update_end_label()
 
 class MainWindow(QMainWindow):
     def __init__(self, data_handler):
