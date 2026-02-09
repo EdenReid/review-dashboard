@@ -202,7 +202,9 @@ class CalendarPage(QWidget):
     def validate_date_range(self):
         if self.start_date > self.end_date:
             self.error_label.setText("Start date cannot be after end date")
-        else:
+            self.next_button.setEnabled(False)
+        elif self.start_date <= self.end_date:
+            self.error_label.setText("")
             self.next_button.setEnabled(True)
 
     def on_date_changed(self):
