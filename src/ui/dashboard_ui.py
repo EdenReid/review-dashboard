@@ -93,8 +93,9 @@ class CalendarPage(QWidget):
     back_requested = pyqtSignal()
     next_requested = pyqtSignal()
 
-    def __init__(self):        
+    def __init__(self, data_handler):        
         super().__init__()
+        self.data_handler = data_handler
 
         layout = QVBoxLayout()
 
@@ -206,6 +207,9 @@ class CalendarPage(QWidget):
         elif self.start_date <= self.end_date:
             self.error_label.setText("")
             self.next_button.setEnabled(True)
+            filtered_data = self.data_handler.filter_reviews(self.start_date, self.end_date)
+            if filtered_data is not None:
+                print(filtered_data)
 
     def on_date_changed(self):
         self.capture_selected_dates()
@@ -224,26 +228,20 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
  
         self.upload_page = UploadPage(data_handler)
-        self.calendar_page = CalendarPage()
+        self.calendar_page = CalendarPage(data_handler)
         self.stack.addWidget(self.upload_page)
         self.stack.addWidget(self.calendar_page)
 
         self.setCentralWidget(self.stack)
 
         self.upload_page.next_requested.connect(self.go_next)
-
         self.calendar_page.back_requested.connect(self.go_back)
-
-        self.calendar_page.next_requested.connect(self.go_next)
     
     def go_next(self):
         currentIndex = self.stack.currentIndex()
-
         if currentIndex == 0:
-            df = self.upload_page.df
-            min_date, max_date = self.data_handler.find_min_max_dates(df)
-            self.calendar_page.set_date_bounds(min_date,max_date)
-
+            min_date, max_date = self.data_handler.find_min_max_dates(self.data_handler.data)
+            self.calendar_page.set_date_bounds(min_date, max_date)
         self.stack.setCurrentIndex(currentIndex + 1)
 
     def go_back(self):

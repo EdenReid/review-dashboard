@@ -1,6 +1,9 @@
 import os, csv
 import pandas as pd
 class ReviewDataHandler:
+    def __init__(self):
+        self.data = None
+
     def validate_file(self, file_path : str):
 
         _, file_extension = os.path.splitext(file_path) # validates file ending 
@@ -27,17 +30,37 @@ class ReviewDataHandler:
                         return False, "CSV file contains missing Date or Review values", None
                 
                 df = pd.read_csv(file_path, encoding="utf-8-sig")
+                self.data = df
 
                 return True, "", df
             
-        except FileNotFoundError, UnicodeDecodeError, csv.Error:
+        except (FileNotFoundError, UnicodeDecodeError, csv.Error):
 
             return False, "File could not be read as a valid CSV", None
-        
+    
     def find_min_max_dates(self, df):
-        df["Date"] = pd.to_datetime(df["Date"], dayfirst = "True")
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst = True)
 
         min_date = df["Date"].min().date()
         max_date = df["Date"].max().date()
         
         return min_date, max_date
+    
+    def filter_reviews(self, start_date, end_date):
+        
+        if self.data is None:
+            return None
+
+        df = self.data.copy()
+
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst= True)
+        
+        start_date = pd.Timestamp(start_date)
+        end_date = pd.Timestamp(end_date)
+
+        df = df[
+            (df["Date"] >= start_date) &
+            (df["Date"] <= end_date)
+        ]
+        
+        return df

@@ -8,7 +8,7 @@ def main():
 
     data_handler = ReviewDataHandler()
     window = MainWindow(data_handler)
-        
+
     window.show()
     app.exec()
 
