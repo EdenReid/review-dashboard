@@ -13,3 +13,6 @@ v0.7 - parse and store file
 
 v0.8 - implementation of calendar page UI
 v0.9 - date bounds on calendars and selected date appears on page
+
+POST DEV TESTING:
+- Add validation for no reviews in selected range

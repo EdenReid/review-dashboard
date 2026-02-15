@@ -2,8 +2,7 @@
 import os
 import sys
 from PyQt6.QtCore import Qt, pyqtSignal, QDate
-from PyQt6.QtWidgets import QWidget, QMainWindow, QPushButton, QVBoxLayout, QLabel, QStackedWidget, QFileDialog, QHBoxLayout, QCalendarWidget
-
+from PyQt6.QtWidgets import QHeaderView, QWidget, QMainWindow, QPushButton, QVBoxLayout, QLabel, QStackedWidget, QFileDialog, QHBoxLayout, QCalendarWidget, QTableWidget, QTableWidgetItem, QTabWidget
 class UploadPage(QWidget):
 
     next_requested = pyqtSignal()
@@ -207,15 +206,102 @@ class CalendarPage(QWidget):
         elif self.start_date <= self.end_date:
             self.error_label.setText("")
             self.next_button.setEnabled(True)
-            filtered_data = self.data_handler.filter_reviews(self.start_date, self.end_date)
-            if filtered_data is not None:
-                print(filtered_data)
 
     def on_date_changed(self):
         self.capture_selected_dates()
         self.validate_date_range()
         self.update_start_label()
         self.update_end_label()
+
+class ReviewPage(QWidget):
+
+    back_requested = pyqtSignal()
+
+    def __init__(self, data_handler):
+        super().__init__()
+        self.data_handler = data_handler
+        self.init_ui()
+
+    def init_ui(self):
+       main_layout = QVBoxLayout()
+
+       self.tabs = QTabWidget()
+       self.reviews_tab = QWidget()
+       self.sentiment_tab = QWidget()
+
+       self.tabs.addTab(self.reviews_tab, "Reviews")
+       self.tabs.addTab(self.sentiment_tab, "Sentiment analysis") 
+
+       self.init_reviews_tab()
+       main_layout.addWidget(self.tabs)
+       
+       back_button = QPushButton("Back")
+       back_button.setFixedSize(100, 30)
+       back_button.clicked.connect(self.back_requested.emit)
+       main_layout.addWidget(back_button)
+
+       self.setLayout(main_layout)
+    
+    def init_reviews_tab(self):
+        layout = QHBoxLayout()
+
+        self.review_table = QTableWidget()
+        self.review_table.setColumnCount(3)
+        self.review_table.setHorizontalHeaderLabels(["Date","Review","Sentiment score"]) 
+        self.review_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.review_table.setSortingEnabled(False)
+
+        header = self.review_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+
+        self.review_table.setWordWrap(True)
+        self.review_table.setTextElideMode(Qt.TextElideMode.ElideNone)
+
+        self.review_table.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+
+        keywords_layout = QVBoxLayout()
+        
+        keywords_label = QLabel("Most common keywords")
+        font = keywords_label.font()
+        font.setPointSize(20)
+        font.setBold(True)
+        keywords_label.setFont(font)
+        keywords_layout.addWidget(keywords_label, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        self.keywords_table = QTableWidget()
+        self.keywords_table.setColumnCount(3)
+        self.keywords_table.setHorizontalHeaderLabels(["Rank","Keyword","Frequency"])
+        self.keywords_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.keywords_table.setSortingEnabled(False)
+        keywords_layout.addWidget(self.keywords_table)
+
+        layout.addWidget(self.review_table)
+        layout.addLayout(keywords_layout)
+
+        self.reviews_tab.setLayout(layout)
+
+    def populate_table(self, df):
+        
+        if df is None:
+            return 
+        
+        self.review_table.setRowCount(0) #clear existing rows
+
+        self.review_table.setRowCount(len(df))
+
+        for row_index, (_, row) in enumerate(df.iterrows()):
+            date_str = row["Date"].strftime("%d/%m/%Y") #format date
+            review_text = row["Review"]
+
+            self.review_table.setItem(row_index, 0, QTableWidgetItem(date_str))
+            self.review_table.setItem(row_index, 1, QTableWidgetItem(review_text))
+            self.review_table.setItem(row_index, 2, QTableWidgetItem("")) #sentiment score row empty for now
+
+        self.review_table.resizeRowsToContents()
 
 class MainWindow(QMainWindow):
     def __init__(self, data_handler):
@@ -229,19 +315,31 @@ class MainWindow(QMainWindow):
  
         self.upload_page = UploadPage(data_handler)
         self.calendar_page = CalendarPage(data_handler)
+        self.review_page = ReviewPage(data_handler)
+
         self.stack.addWidget(self.upload_page)
         self.stack.addWidget(self.calendar_page)
+        self.stack.addWidget(self.review_page)
 
         self.setCentralWidget(self.stack)
 
         self.upload_page.next_requested.connect(self.go_next)
         self.calendar_page.back_requested.connect(self.go_back)
+        self.calendar_page.next_requested.connect(self.go_next)
+        self.review_page.back_requested.connect(self.go_back)
     
     def go_next(self):
         currentIndex = self.stack.currentIndex()
         if currentIndex == 0:
             min_date, max_date = self.data_handler.find_min_max_dates(self.data_handler.data)
             self.calendar_page.set_date_bounds(min_date, max_date)
+
+        if currentIndex == 1:
+            start_date = self.calendar_page.start_date
+            end_date = self.calendar_page.end_date
+            sorted_df = self.data_handler.get_sorted_reviews(start_date, end_date)
+            self.review_page.populate_table(sorted_df)
+
         self.stack.setCurrentIndex(currentIndex + 1)
 
     def go_back(self):

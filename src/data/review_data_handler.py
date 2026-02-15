@@ -64,3 +64,14 @@ class ReviewDataHandler:
         ]
         
         return df
+    
+    def get_sorted_reviews(self, start_date, end_date):
+
+        df = self.filter_reviews(start_date, end_date)
+
+        if df is None:
+            return
+
+        df = df.sort_values(by="Date", ascending=False)
+
+        return df 
