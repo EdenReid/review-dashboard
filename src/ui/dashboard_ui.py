@@ -299,7 +299,7 @@ class ReviewPage(QWidget):
 
             self.review_table.setItem(row_index, 0, QTableWidgetItem(date_str))
             self.review_table.setItem(row_index, 1, QTableWidgetItem(review_text))
-            self.review_table.setItem(row_index, 2, QTableWidgetItem("")) #sentiment score row empty for now
+            self.review_table.setItem(row_index, 2, QTableWidgetItem("")) #sentiment score column empty for now
 
         self.review_table.resizeRowsToContents()
 
