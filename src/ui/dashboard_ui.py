@@ -273,9 +273,11 @@ class ReviewPage(QWidget):
         keywords_layout.addWidget(keywords_label, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         self.keywords_table = QTableWidget()
-        self.keywords_table.setColumnCount(3)
-        self.keywords_table.setHorizontalHeaderLabels(["Rank","Keyword","Frequency"])
+        self.keywords_table.setColumnCount(2)
+        self.keywords_table.setHorizontalHeaderLabels(["Keyword","Frequency"])
         self.keywords_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.keywords_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.keywords_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.keywords_table.setSortingEnabled(False)
         keywords_layout.addWidget(self.keywords_table)
 
@@ -303,10 +305,30 @@ class ReviewPage(QWidget):
 
         self.review_table.resizeRowsToContents()
 
+    def populate_keywords_table(self, keywords):
+
+        if keywords is None:
+            return
+        
+        self.keywords_table.setRowCount(0) #clear existing rows
+        self.keywords_table.setRowCount(len(keywords))
+
+        for row_index, (keyword, freq) in enumerate(keywords):
+
+            keyword_item = QTableWidgetItem(keyword)
+            self.keywords_table.setItem(row_index, 0, keyword_item)
+            keyword_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+            
+            frequency_item = QTableWidgetItem(str(freq))
+            self.keywords_table.setItem(row_index, 1, frequency_item)
+            frequency_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
 class MainWindow(QMainWindow):
     def __init__(self, data_handler):
         super().__init__()
         self.data_handler = data_handler
+        from analysis.review_analyser import ReviewAnalyser
+        self.analyser = ReviewAnalyser()
 
         self.setWindowTitle("Review Analyser")
         self.setMinimumSize(800,600)
@@ -334,11 +356,16 @@ class MainWindow(QMainWindow):
             min_date, max_date = self.data_handler.find_min_max_dates(self.data_handler.data)
             self.calendar_page.set_date_bounds(min_date, max_date)
 
-        if currentIndex == 1:
+        elif currentIndex == 1:
+
             start_date = self.calendar_page.start_date
             end_date = self.calendar_page.end_date
-            sorted_df = self.data_handler.get_sorted_reviews(start_date, end_date)
-            self.review_page.populate_table(sorted_df)
+
+            df = self.data_handler.get_sorted_reviews(start_date, end_date)
+            keywords = self.analyser.get_most_common_words(df)
+
+            self.review_page.populate_table(df)
+            self.review_page.populate_keywords_table(keywords)
 
         self.stack.setCurrentIndex(currentIndex + 1)
 

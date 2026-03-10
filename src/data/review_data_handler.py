@@ -78,54 +78,5 @@ class ReviewDataHandler:
 
         return df 
     
-    def get_most_common_words(self, start_date, end_date, n=10):
 
-        df = self.filter_reviews(start_date, end_date)
-        if df is None:
-            return []
-        all_text = " ".join(df["Review"].astype(str)).lower()
-        all_text = re.sub(r"[^\w\s]", "", all_text)
-        words = all_text.split()
-        stopwords = {
-            "a","about","above","after","again","against","all","am","an","and","any","are","aren","as","at",
-            "be","because","been","before","being","below","between","both","but","by",
-            "can","could",
-            "did","do","does","doing","down","during",
-            "each",
-            "few","for","from","further",
-            "had","has","have","having","he","her","here","hers","herself","him","himself","his","how",
-            "i","if","in","into","is","it","its","itself",
-            "just",
-            "me","more","most","my","myself","made",
-            "no","nor","not","now",
-            "of","off","on","once","only","or","other","our","ours","ourselves","out","over","own",
-            "same","she","should","so","some","such",
-            "than","that","the","their","theirs","them","themselves","then","there","these","they","this","those","through","to","too",
-            "under","until","up",
-            "very",
-            "was","we","were","what","when","where","which","while","who","whom","why","with","would",
-            "you","your","yours","yourself","yourselves"
-        }
-
-        filtered_words = [
-            word for word in words 
-            if word not in stopwords and len(word) > 2
-        ]
-
-        counts = Counter(filtered_words)
-
-        return counts.most_common(n)
     
-if __name__ == "__main__":
-
-    handler = ReviewDataHandler()
-    file_path = "src/data/review_test_data_25_rows.csv"
-    valid, msg, df = handler.validate_file(file_path)
-    
-    if valid:
-        min_date, max_date = handler.find_min_max_dates(df)
-        keywords = handler.get_most_common_words(min_date, max_date)
-        for word, count in keywords:
-            print(f"{word}: {count}")
-    else:
-        print("error")
