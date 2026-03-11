@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QApplication
 
 from data.review_data_handler import ReviewDataHandler
+from analysis.review_analyser import ReviewAnalyser 
 from ui.dashboard_ui import MainWindow 
 
 def main():

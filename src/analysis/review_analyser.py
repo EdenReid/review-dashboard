@@ -64,29 +64,20 @@ class ReviewAnalyser:
 
         df["Sentiment"] = sentiment_scores
 
-        return df 
+        return df
+    
+    def get_average_sentiment(self, df):
 
-if __name__ == "__main__":
+        if df is None or "Sentiment" not in df.columns:
+            return None
 
-    import pandas as pd
-    from src.data.review_data_handler import ReviewDataHandler
+        average_score = df["Sentiment"].mean()
 
-    handler = ReviewDataHandler()
-    analyser = ReviewAnalyser()
+        classification = "Neutral"
 
-    file_path = "src/data/review_test_data_25_rows.csv"
+        if average_score > 3:
+            classification = "Positive"
+        elif average_score < 2:
+            classification = "Negative"
 
-    valid, message, df = handler.validate_file(file_path)
-
-    if not valid:
-        print("error")
-    else:
-
-        min_date, max_date = handler.find_min_max_dates(df) 
-        df = handler.get_sorted_reviews(min_date, max_date)
-        df = analyser.get_sentiment_scores(df)
-
-        for index, row in df.iterrows():
-            print(f"Review: {row['Review']}")
-            print(f"Sentiment Score: {row['Sentiment']}")
-            print() 
+        return (round(average_score, 1), classification)

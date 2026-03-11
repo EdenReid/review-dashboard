@@ -233,6 +233,7 @@ class ReviewPage(QWidget):
        self.tabs.addTab(self.sentiment_tab, "Sentiment analysis") 
 
        self.init_reviews_tab()
+       self.init_sentiment_tab()
        main_layout.addWidget(self.tabs)
        
        back_button = QPushButton("Back")
@@ -298,10 +299,11 @@ class ReviewPage(QWidget):
         for row_index, (_, row) in enumerate(df.iterrows()):
             date_str = row["Date"].strftime("%d/%m/%Y") #format date
             review_text = row["Review"]
+            sentiment_score = row["Sentiment"]
 
             self.review_table.setItem(row_index, 0, QTableWidgetItem(date_str))
             self.review_table.setItem(row_index, 1, QTableWidgetItem(review_text))
-            self.review_table.setItem(row_index, 2, QTableWidgetItem("")) #sentiment score column empty for now
+            self.review_table.setItem(row_index, 2, QTableWidgetItem(str(sentiment_score)))
 
         self.review_table.resizeRowsToContents()
 
@@ -323,6 +325,73 @@ class ReviewPage(QWidget):
             self.keywords_table.setItem(row_index, 1, frequency_item)
             frequency_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
+    def init_sentiment_tab(self):
+
+        main_layout = QHBoxLayout()
+
+        self.left_panel = QWidget()
+        left_layout = QVBoxLayout()
+
+        self.right_panel = QWidget()
+        right_layout = QVBoxLayout()
+
+        self.left_panel.setLayout(left_layout)
+        self.right_panel.setLayout(right_layout)
+
+        main_layout.addWidget(self.left_panel, 1)
+        main_layout.addWidget(self.right_panel, 2) #right side gets greater weight so graph side is wider
+
+        self.sentiment_tab.setLayout(main_layout)
+
+        self.init_average_sentiment_panel(left_layout)
+
+    def init_average_sentiment_panel(self, layout):
+
+        title = QLabel("Average sentiment score:")
+        font = title.font()
+        font.setPointSize(18)
+        font.setBold(True)
+        title.setFont(font) 
+        title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+        self.avg_score_label = QLabel("0.0")
+        score_font = self.avg_score_label.font()
+        score_font.setPointSize(40)
+        score_font.setBold(True)    
+        self.avg_score_label.setFont(score_font)
+        self.avg_score_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)    
+
+        self.classification_label = QLabel("Neutral")
+        classification_font = self.classification_label.font()  
+        classification_font.setPointSize(20)
+        classification_font.setBold(True)
+        self.classification_label.setFont(classification_font)
+        self.classification_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+        description = QLabel("Sentiment is scored from 0 to 5 inclusive and recorded to the nearest 0.1.")
+
+        description.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+        layout.addWidget(title)
+        layout.addSpacing(10)
+        layout.addWidget(self.avg_score_label)
+        layout.addWidget(self.classification_label)
+        layout.addSpacing(10)
+        layout.addWidget(description)
+        layout.addStretch()
+
+    def update_average_sentiment(self, average_score, classification):
+
+        self.avg_score_label.setText(str(average_score))
+        self.classification_label.setText(classification)
+
+        if classification == "Positive":
+            self.classification_label.setStyleSheet("color: green;")
+        elif classification == "Negative":
+            self.classification_label.setStyleSheet("color: red;")
+        else:
+            self.classification_label.setStyleSheet("color: orange;")
+ 
 class MainWindow(QMainWindow):
     def __init__(self, data_handler):
         super().__init__()
@@ -362,10 +431,14 @@ class MainWindow(QMainWindow):
             end_date = self.calendar_page.end_date
 
             df = self.data_handler.get_sorted_reviews(start_date, end_date)
+            df = self.analyser.get_sentiment_scores(df)
             keywords = self.analyser.get_most_common_words(df)
 
             self.review_page.populate_table(df)
             self.review_page.populate_keywords_table(keywords)
+
+            avg_score, classification = self.analyser.get_average_sentiment(df)
+            self.review_page.update_average_sentiment(avg_score, classification)
 
         self.stack.setCurrentIndex(currentIndex + 1)
 
