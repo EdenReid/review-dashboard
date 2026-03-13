@@ -368,10 +368,14 @@ class ReviewPage(QWidget):
         self.classification_label.setFont(classification_font)
         self.classification_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        description = QLabel("Sentiment is scored from 0 to 5 inclusive and recorded to the nearest 0.1.")
+        description = QLabel("Sentiment is scored from 0 to 5 inclusive and \nrecorded to the nearest 0.1.")
+        description_font = description.font()
+        description_font.setPointSize(10)
+        description.setFont(description_font)
 
         description.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
+        layout.addStretch()
         layout.addWidget(title)
         layout.addSpacing(10)
         layout.addWidget(self.avg_score_label)
