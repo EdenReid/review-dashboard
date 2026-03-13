@@ -1,4 +1,4 @@
-import re 
+import re, datetime, pandas as pd
 from collections import Counter 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -81,3 +81,37 @@ class ReviewAnalyser:
             classification = "Negative"
 
         return (round(average_score, 1), classification)
+    
+    def get_daily_average_sentiments(self, df, min_date, max_date):
+
+        if df is None or "Sentiment" not in df.columns:
+            return None
+
+        daily_avg = df.groupby(df["Date"])["Sentiment"].mean()
+        all_dates = pd.date_range(start=min_date, end=max_date)
+        
+        daily_avg = daily_avg.reindex(all_dates)
+        daily_avg = daily_avg.ffill() 
+
+        return daily_avg
+
+if __name__ == "__main__": 
+
+    from src.data.review_data_handler import ReviewDataHandler
+
+    handler = ReviewDataHandler()
+    analyser = ReviewAnalyser()
+
+    file_path = "src/data/review_test_data_25_rows.csv"
+
+    valid, message, df = handler.validate_file(file_path)
+
+    if not valid:
+        print("error")
+    else:
+        min_date, max_date = handler.find_min_max_dates(df)
+        df = handler.get_sorted_reviews(min_date, max_date)
+        df = analyser.get_sentiment_scores(df) 
+        daily_scores = analyser.get_daily_average_sentiments(df, min_date, max_date)
+
+        print(daily_scores)
