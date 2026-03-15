@@ -2,7 +2,11 @@
 import os
 import sys
 from PyQt6.QtCore import Qt, pyqtSignal, QDate
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 from PyQt6.QtWidgets import QHeaderView, QWidget, QMainWindow, QPushButton, QVBoxLayout, QLabel, QStackedWidget, QFileDialog, QHBoxLayout, QCalendarWidget, QTableWidget, QTableWidgetItem, QTabWidget
+
 class UploadPage(QWidget):
 
     next_requested = pyqtSignal()
@@ -327,6 +331,10 @@ class ReviewPage(QWidget):
 
     def init_sentiment_tab(self):
 
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
+
         main_layout = QHBoxLayout()
 
         self.left_panel = QWidget()
@@ -334,6 +342,7 @@ class ReviewPage(QWidget):
 
         self.right_panel = QWidget()
         right_layout = QVBoxLayout()
+        right_layout.addWidget(self.canvas)
 
         self.left_panel.setLayout(left_layout)
         self.right_panel.setLayout(right_layout)
@@ -396,6 +405,28 @@ class ReviewPage(QWidget):
         else:
             self.classification_label.setStyleSheet("color: orange;")
  
+    def plot_sentiment_graph(self, daily_avg):
+
+        if daily_avg is None:
+            return  
+
+        self.ax.clear()
+
+        smoothed = daily_avg.rolling(window=14).mean()
+
+        self.ax.plot(daily_avg.index, daily_avg.values, alpha=0.3)
+        self.ax.plot(smoothed.index, smoothed.values, linewidth=3)
+
+        self.ax.set_title("Daily Average Sentiment Over Time")
+        self.ax.set_xlabel("Date")
+        self.ax.set_ylabel("Sentiment Score")
+
+        self.ax.tick_params(axis='x', rotation=45) 
+
+        self.figure.tight_layout() 
+
+        self.canvas.draw()
+
 class MainWindow(QMainWindow):
     def __init__(self, data_handler):
         super().__init__()
@@ -422,6 +453,7 @@ class MainWindow(QMainWindow):
         self.calendar_page.back_requested.connect(self.go_back)
         self.calendar_page.next_requested.connect(self.go_next)
         self.review_page.back_requested.connect(self.go_back)
+
     
     def go_next(self):
         currentIndex = self.stack.currentIndex()
@@ -443,6 +475,8 @@ class MainWindow(QMainWindow):
 
             avg_score, classification = self.analyser.get_average_sentiment(df)
             self.review_page.update_average_sentiment(avg_score, classification)
+            daily_avg = self.analyser.get_daily_average_sentiments(df, start_date, end_date)
+            self.review_page.plot_sentiment_graph(daily_avg)
 
         self.stack.setCurrentIndex(currentIndex + 1)
 

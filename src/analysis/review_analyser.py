@@ -1,4 +1,4 @@
-import re, datetime, pandas as pd
+import re, pandas as pd
 from collections import Counter 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -95,23 +95,3 @@ class ReviewAnalyser:
 
         return daily_avg
 
-if __name__ == "__main__": 
-
-    from src.data.review_data_handler import ReviewDataHandler
-
-    handler = ReviewDataHandler()
-    analyser = ReviewAnalyser()
-
-    file_path = "src/data/review_test_data_25_rows.csv"
-
-    valid, message, df = handler.validate_file(file_path)
-
-    if not valid:
-        print("error")
-    else:
-        min_date, max_date = handler.find_min_max_dates(df)
-        df = handler.get_sorted_reviews(min_date, max_date)
-        df = analyser.get_sentiment_scores(df) 
-        daily_scores = analyser.get_daily_average_sentiments(df, min_date, max_date)
-
-        print(daily_scores)
