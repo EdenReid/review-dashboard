@@ -410,18 +410,20 @@ class ReviewPage(QWidget):
         if daily_avg is None:
             return  
 
-        self.ax.clear()
+        self.ax.clear() #clears previous graph
 
-        smoothed = daily_avg.rolling(window=14).mean()
+        smoothed = daily_avg.rolling(window=14).mean() #takes rolling average with a 14 day window
 
-        self.ax.plot(daily_avg.index, daily_avg.values, alpha=0.3)
-        self.ax.plot(smoothed.index, smoothed.values, linewidth=3)
+        self.ax.plot(daily_avg.index, daily_avg.values, alpha=0.3, label="Raw data") #faint line for raw data
+        self.ax.plot(smoothed.index, smoothed.values, linewidth=3, label="Smoothed data") #bold line for smoothed data
 
         self.ax.set_title("Daily Average Sentiment Over Time")
         self.ax.set_xlabel("Date")
         self.ax.set_ylabel("Sentiment Score")
 
         self.ax.tick_params(axis='x', rotation=45) 
+
+        self.ax.legend()
 
         self.figure.tight_layout() 
 

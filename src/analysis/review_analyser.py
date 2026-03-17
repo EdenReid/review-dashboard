@@ -18,7 +18,7 @@ class ReviewAnalyser:
         stopwords = {
             "a","about","above","after","again","against","all","am","an","and","any","are","aren","as","at",
             "be","because","been","before","being","below","between","both","but","by",
-            "can","could",
+            "can","could","get", "gets", "got", "getting",
             "did","do","does","doing","down","during",
             "each",
             "few","for","from","further",
