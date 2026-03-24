@@ -1,2 +1,4 @@
 OCR A Level Computer Science NEA
-Review Dashboard Project
+Review Analyser Project
+
+Must be run only from main.py. All navigation takes place through GUI.

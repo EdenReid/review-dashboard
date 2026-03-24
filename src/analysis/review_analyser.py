@@ -1,24 +1,28 @@
-import re, pandas as pd
-from collections import Counter 
+import re
+import pandas as pd
+from collections import Counter
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 
 class ReviewAnalyser:
 
     def __init__(self):
-
         self.analyser = SentimentIntensityAnalyzer()
 
     def get_most_common_words(self, df, n=10):
-
         if df is None:
             return []
+
+        # flatten all reviews to one text block for frequency count
         all_text = " ".join(df["Review"].astype(str)).lower()
         all_text = re.sub(r"[^\w\s]", "", all_text)
         words = all_text.split()
+
+        # stopwords to be ignored in keyword extraction
         stopwords = {
             "a","about","above","after","again","against","all","am","an","and","any","are","aren","as","at",
             "be","because","been","before","being","below","between","both","but","by",
-            "can","could","get", "gets", "got", "getting",
+            "can","could","get", "gets","got", "getting",
             "did","do","does","doing","down","during",
             "each",
             "few","for","from","further",
@@ -67,12 +71,11 @@ class ReviewAnalyser:
         return df
     
     def get_average_sentiment(self, df):
-
+        # compute overall average sentiment and assign category
         if df is None or "Sentiment" not in df.columns:
             return None
 
         average_score = df["Sentiment"].mean()
-
         classification = "Neutral"
 
         if average_score > 3:
@@ -81,9 +84,9 @@ class ReviewAnalyser:
             classification = "Negative"
 
         return (round(average_score, 1), classification)
-    
-    def get_daily_average_sentiments(self, df, min_date, max_date):
 
+    def get_daily_average_sentiments(self, df, min_date, max_date):
+        # compute daily average sentiment for each date in the interval, carrying previous scores over for dates without reviews
         if df is None or "Sentiment" not in df.columns:
             return None
 

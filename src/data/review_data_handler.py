@@ -1,62 +1,61 @@
-import os, csv, re
+import os, csv
 import pandas as pd
-from collections import Counter
 
 class ReviewDataHandler:
+
     def __init__(self):
-        self.data = None
+        self.data = None  # pandas DataFrame after successful file load
 
     def validate_file(self, file_path : str):
-
-        _, file_extension = os.path.splitext(file_path) # validates file ending 
-        if file_extension != ".csv":
+        # verify extension is CSV before parsing file
+        _, file_extension = os.path.splitext(file_path)
+        if file_extension.lower() != ".csv":
             return False, "File ending must be .csv", None
         
         try:
-
             with open(file_path, newline="", encoding="utf-8-sig") as f:
                 reader = csv.reader(f)
                 headers = next(reader)
                 headers = [h.strip() for h in headers]
 
-                required_headers = ("Date","Review") # checking that file contains correct headers
+                required_headers = ("Date", "Review") # required CSV headers
                 for header in required_headers:
                     if header not in headers:
-                        return False, f"File missing {header} header", None 
-                    
-                date_index = headers.index("Date") 
+                        return False, f"File missing {header} header", None
+
+                date_index = headers.index("Date")
                 review_index = headers.index("Review")
-                
-                for row in reader: #checking for missing fields
+
+                # ensures no empty values in required columns
+                for row in reader:
                     if not row[date_index].strip() or not row[review_index].strip():
                         return False, "CSV file contains missing Date or Review values", None
-                
-                df = pd.read_csv(file_path, encoding="utf-8-sig")
-                self.data = df
 
-                return True, "", df
-            
+            # loads data 
+            df = pd.read_csv(file_path, encoding="utf-8-sig")
+            self.data = df
+            return True, "", df
+
         except (FileNotFoundError, UnicodeDecodeError, csv.Error):
-
             return False, "File could not be read as a valid CSV", None
     
     def find_min_max_dates(self, df):
-        df["Date"] = pd.to_datetime(df["Date"], dayfirst = True)
+        # parse Date column and return earliest/latest calendar dates
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
 
         min_date = df["Date"].min().date()
         max_date = df["Date"].max().date()
-        
+
         return min_date, max_date
     
     def filter_reviews(self, start_date, end_date):
-        
+        # return reviews in inclusive date range from loaded data
         if self.data is None:
             return None
 
         df = self.data.copy()
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
 
-        df["Date"] = pd.to_datetime(df["Date"], dayfirst= True)
-        
         start_date = pd.Timestamp(start_date)
         end_date = pd.Timestamp(end_date)
 
@@ -64,15 +63,15 @@ class ReviewDataHandler:
             (df["Date"] >= start_date) &
             (df["Date"] <= end_date)
         ]
-        
+
         return df
     
     def get_sorted_reviews(self, start_date, end_date):
-
+        # get filtered reviews sorted newest first
         df = self.filter_reviews(start_date, end_date)
 
         if df is None:
-            return
+            return None
 
         df = df.sort_values(by="Date", ascending=False)
 
